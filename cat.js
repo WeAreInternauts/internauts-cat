@@ -36,11 +36,11 @@
     }
     #__icat-dust img { display: block; width: 75px; height: 75px; user-select: none; }
     #__icat-cursor {
-      position: fixed; width: 12px; height: 20px;
-      pointer-events: none; display: none; z-index: 99999;
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='20' viewBox='0 0 12 20'%3E%3Cpath d='M0 0 L0 16 L4 12 L7 19 L9 18 L6 11 L11 11 Z' fill='black' stroke='white' stroke-width='1'/%3E%3C/svg%3E") no-repeat top left;
-      background-size: contain;
+      position: fixed; pointer-events: none; display: none; z-index: 99999;
+      width: 55px; height: auto;
+      transform-origin: top left;
     }
+    body.__icat-dragging * { cursor: none !important; }
     body.__icat-dragging { cursor: none !important; }
   `;
   document.head.appendChild(style);
@@ -54,7 +54,7 @@
   const dustImg  = document.createElement('img'); dustImg.alt = '';
   dustWrap.appendChild(dustImg); document.body.appendChild(dustWrap);
 
-  const fakeCursor = document.createElement('div'); fakeCursor.id = '__icat-cursor';
+  const fakeCursor = document.createElement('img'); fakeCursor.id = '__icat-cursor'; fakeCursor.alt = '';
   document.body.appendChild(fakeCursor);
 
   // ── Frame sequences ─────────────────────────────────────────────────────────
@@ -175,9 +175,24 @@
     const t=1-Math.pow(1-CFG.dragLerp,dt/16);
     const nx=dragX+(mX-dragX)*t, ny=dragY+(mY-dragY)*t;
     const dx=nx-dragX;
-    if(Math.abs(dx)>0.3)facing=dx>0?'right':'left';
+    if(Math.abs(dx)>0.3){
+      const newFacing=dx>0?'right':'left';
+      if(newFacing!==facing){
+        facing=newFacing;
+        // flip the cursor cat image to match direction
+        fakeCursor.style.transform=facing==='left'?'scaleX(-1)':'scaleX(1)';
+      }
+    }
     dragX=nx;dragY=ny;
-    fakeCursor.style.left=dragX+'px';fakeCursor.style.top=dragY+'px';
+    // position fake cursor: hotspot is bottom-right (facing right) or bottom-left (facing left)
+    if(facing==='right'){
+      fakeCursor.style.left=(dragX-CFG.dragOffsetX*2)+'px';
+      fakeCursor.style.top=(dragY-CFG.dragOffsetY*2)+'px';
+    } else {
+      fakeCursor.style.left=dragX+'px';
+      fakeCursor.style.top=(dragY-CFG.dragOffsetY*2)+'px';
+    }
+    // keep logical cat position for zone calculations
     const ox=facing==='right'?-CFG.dragOffsetX:CFG.dragOffsetX;
     catX=dragX+ox; catY=dragY-CFG.dragOffsetY;
     recordShake(performance.now(),mX);
@@ -187,6 +202,8 @@
     shakeHistory=[];stillInAmbushSince=null;
     document.body.classList.remove('__icat-dragging');
     fakeCursor.style.display='none';
+    wrap.style.display=''; // show cat body again at its current catX/catY
+    applyWrap();
     const now=performance.now();
     const next=inAmbush()?(inPounce()?'pounce':'ambush'):(now-lastMoveTime<CFG.mouseIdleMs?'active':'idle');
     setState(next);
@@ -199,10 +216,23 @@
     dragX=mX;dragY=mY;
     const offX=facing==='right'?-CFG.dragOffsetX:CFG.dragOffsetX;
     catX=dragX+offX;catY=dragY-CFG.dragOffsetY;
-    fakeCursor.style.left=dragX+'px';fakeCursor.style.top=dragY+'px';
+    // set fake cursor to CAT7, positioned so its paw corner is at the mouse
+    fakeCursor.src=F.CAT7;
+    fakeCursor.style.width='55px';
+    fakeCursor.style.height='auto';
+    fakeCursor.style.transform=facing==='left'?'scaleX(-1)':'scaleX(1)';
+    if(facing==='right'){
+      fakeCursor.style.left=(dragX-CFG.dragOffsetX*2)+'px';
+      fakeCursor.style.top=(dragY-CFG.dragOffsetY*2)+'px';
+    } else {
+      fakeCursor.style.left=dragX+'px';
+      fakeCursor.style.top=(dragY-CFG.dragOffsetY*2)+'px';
+    }
     fakeCursor.style.display='block';
+    wrap.style.display='none'; // hide the background cat element
     document.body.classList.add('__icat-dragging');
-    startDust(ox,oy);applyWrap();setState('dragging');
+    startDust(ox,oy);
+    setState('dragging');
     shakeHistory=[];stillInAmbushSince=null;
   }
 
@@ -228,6 +258,7 @@
 
   // ── Render ───────────────────────────────────────────────────────────────────
   function renderFrame(){
+    if(state==='dragging')return; // cat is hidden; fake cursor handles display
     const src=FRAMES[state][frameIdx];
     const data=FRAME_DATA[src]||{w:55,h:null};
     if(img.src!==src)img.src=src;
