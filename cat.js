@@ -39,15 +39,10 @@
     #__icat-dust img { display: block; width: 75px; height: 75px; user-select: none; }
     #__icat-cursor {
       position: fixed; pointer-events: none; display: none; z-index: 99999;
-      width: 55px; height: auto;
-      transform-origin: top left;
+      width: 28px; height: auto;
     }
     body.__icat-dragging * { cursor: none !important; }
     body.__icat-dragging { cursor: none !important; }
-    #__icat-pointer {
-      position: fixed; pointer-events: none; display: none; z-index: 100000;
-      width: 28px; height: auto;
-    }
   `;
   document.head.appendChild(style);
 
@@ -62,10 +57,6 @@
 
   const fakeCursor = document.createElement('img'); fakeCursor.id = '__icat-cursor'; fakeCursor.alt = '';
   document.body.appendChild(fakeCursor);
-
-  const pointerImg = document.createElement('img'); pointerImg.id = '__icat-pointer'; pointerImg.alt = '';
-  pointerImg.style.display = 'none'; // hidden until drag starts
-  document.body.appendChild(pointerImg);
 
   // ── Frame sequences ─────────────────────────────────────────────────────────
   const FRAMES = {
@@ -181,38 +172,17 @@
 
   // ── Drag ────────────────────────────────────────────────────────────────────
   function positionDragCursor(){
-    // CAT7 rendered: 55px wide, 27.5px tall
-    // Paw rect (the separate rect in CAT7 SVG) sits at x=0,y=11.223 in original coords
-    // At 55px width (scale 0.817): paw top ≈ 9px from img top, height ≈9px
-    // Mouse pointer SVGs are 28px wide, ~21px tall (scaled)
-    const catW = 55, catH = 27.5;
-    const pawY = 8;  // paw vertical offset from cat img top
+    // fakeCursor IS the mouse pointer — MOUSE_RIGHT or MOUSE_LEFT based on direction
+    // hotspot: top-left of the SVG is the tip of the pointer arrow
     if(facing==='right'){
-      // cat faces right: paw is on the LEFT side of CAT7
-      // anchor cat so right edge = dragX, bottom = dragY
-      const cx = dragX - catW;
-      const cy = dragY - catH;
-      fakeCursor.style.left = cx + 'px';
-      fakeCursor.style.top  = cy + 'px';
-      fakeCursor.style.transform = 'scaleX(1)';
-      // use MOUSE_RIGHT (arrow points right/down), place it overlapping paw
-      pointerImg.src = F.MOUSE_RIGHT;
-      pointerImg.style.left = (cx - 2) + 'px';
-      pointerImg.style.top  = (cy + pawY - 2) + 'px';
-      pointerImg.style.transform = 'none';
+      fakeCursor.src = F.MOUSE_RIGHT;
+      fakeCursor.style.left = dragX + 'px';
+      fakeCursor.style.top  = dragY + 'px';
     } else {
-      // cat faces left: paw is on the RIGHT side of flipped CAT7
-      // anchor cat so left edge = dragX, bottom = dragY
-      const cx = dragX;
-      const cy = dragY - catH;
-      fakeCursor.style.left = cx + 'px';
-      fakeCursor.style.top  = cy + 'px';
-      fakeCursor.style.transform = 'scaleX(-1)';
-      // use MOUSE_LEFT (arrow points left/down), place at right side of cat
-      pointerImg.src = F.MOUSE_LEFT;
-      pointerImg.style.left = (cx + catW - 26) + 'px';
-      pointerImg.style.top  = (cy + pawY - 2) + 'px';
-      pointerImg.style.transform = 'none';
+      fakeCursor.src = F.MOUSE_LEFT;
+      // MOUSE_LEFT arrow tip is at top-right, so offset left by width
+      fakeCursor.style.left = (dragX - 28) + 'px';
+      fakeCursor.style.top  = dragY + 'px';
     }
   }
   function tickDragging(dt){
@@ -236,7 +206,6 @@
     shakeHistory=[];stillInAmbushSince=null;
     document.body.classList.remove('__icat-dragging');
     fakeCursor.style.display='none';
-    pointerImg.style.display='none';
     wrap.style.display=''; // show cat body again at its current catX/catY
     applyWrap();
     const now=performance.now();
@@ -251,13 +220,11 @@
     dragX=mX;dragY=mY;
     const offX=facing==='right'?-CFG.dragOffsetX:CFG.dragOffsetX;
     catX=dragX+offX;catY=dragY-CFG.dragOffsetY;
-    // set fake cursor to CAT7
-    fakeCursor.src=F.CAT7;
-    fakeCursor.style.width='55px';
+    // switch cursor to mouse pointer SVG
+    fakeCursor.style.width='28px';
     fakeCursor.style.height='auto';
     fakeCursor.style.display='block';
-    pointerImg.style.display='block';
-    wrap.style.display='none'; // hide the background cat element
+    wrap.style.display='none'; // hide the cat body
     document.body.classList.add('__icat-dragging');
     positionDragCursor();
     startDust(ox,oy);
