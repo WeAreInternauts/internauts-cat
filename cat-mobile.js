@@ -25,7 +25,7 @@
     returnSpeed:  0.06,   // lerp speed returning to logo
     gyroStrength: 12,     // max px offset from gyro tilt
     gyroSmooth:   0.08,   // gyro lerp factor
-    scatterForce: 180,    // initial scatter velocity
+    scatterForce: 540,    // initial scatter velocity
     drag:         0.92,   // velocity drag per frame
     gyroInfluence:0.4,    // how much gyro affects letter velocity
   };
