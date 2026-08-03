@@ -65,6 +65,7 @@
 
   const pointerImg = document.createElement('img'); pointerImg.id = '__icat-pointer'; pointerImg.alt = '';
   pointerImg.src = F.POINTER;
+  pointerImg.style.display = 'none'; // hidden until drag starts
   document.body.appendChild(pointerImg);
 
   // ── Frame sequences ─────────────────────────────────────────────────────────
@@ -181,29 +182,35 @@
 
   // ── Drag ────────────────────────────────────────────────────────────────────
   function positionDragCursor(){
-    // CAT7 paw (rect) is at x=0,y=11.223 in 67.339-wide SVG → rendered at 55px wide → y≈9.2px from top
-    // facing right: cat img left edge = dragX - 55, top = dragY - 27.5; paw is at left+2, top+9
-    // facing left:  cat img is flipped; paw visually at right edge, so left edge = dragX - 2, top+9
-    const catImgH = 27.5; // rendered height of CAT7 at 55px wide
+    // CAT7: paw rect at x=0,y=11.223 in 67.339×33.67 SVG
+    // rendered at 55px wide → scale=0.817 → paw top≈9.2px, paw is at left edge of img
+    // We anchor the cat img so its bottom-right corner (facing right) or bottom-left (facing left)
+    // sits at dragX,dragY — matching the old dragOffsetX/Y anchor
+    const catW = 55, catH = 27.5;
+    const pawY = 9; // paw top from img top, in rendered px
+    const pawW = 9; // paw rect width rendered (11.223*0.817)
     if(facing==='right'){
-      const cx = dragX - 55;
-      const cy = dragY - catImgH;
+      // cat img: right edge at dragX, bottom at dragY
+      const cx = dragX - catW;
+      const cy = dragY - catH;
       fakeCursor.style.left = cx + 'px';
       fakeCursor.style.top  = cy + 'px';
       fakeCursor.style.transform = 'scaleX(1)';
-      // pointer tip goes at paw: paw is at roughly left+1, top+9 of the cat img
-      pointerImg.style.left = (cx + 2) + 'px';
-      pointerImg.style.top  = (cy + 9) + 'px';
+      // paw is left edge of cat img — pointer tip at left+1, top+pawY
+      pointerImg.style.left = (cx + 1) + 'px';
+      pointerImg.style.top  = (cy + pawY) + 'px';
       pointerImg.style.transform = 'none';
     } else {
+      // cat img flipped: left edge at dragX, bottom at dragY
       const cx = dragX;
-      const cy = dragY - catImgH;
+      const cy = dragY - catH;
       fakeCursor.style.left = cx + 'px';
       fakeCursor.style.top  = cy + 'px';
       fakeCursor.style.transform = 'scaleX(-1)';
-      // when flipped, paw is at visual right → pointer at cx+55-2-11, top+9
-      pointerImg.style.left = (cx + 55 - 13) + 'px';
-      pointerImg.style.top  = (cy + 9) + 'px';
+      // paw is now at the visual right of the flipped img → cx + catW - pawW
+      // pointer is also flipped (mirror), so anchor its right edge to paw right
+      pointerImg.style.left = (cx + catW - pawW - 2) + 'px';
+      pointerImg.style.top  = (cy + pawY) + 'px';
       pointerImg.style.transform = 'scaleX(-1)';
     }
   }
