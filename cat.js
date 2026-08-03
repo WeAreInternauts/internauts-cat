@@ -42,6 +42,8 @@
       width: 55px; height: auto;
     }
     body.__icat-dragging, body.__icat-dragging * { cursor: none !important; }
+    /* Always hide system cursor when cat script is active */
+    html, html * { cursor: none !important; }
   `;
   document.head.appendChild(style);
 
