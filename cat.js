@@ -41,8 +41,7 @@
       position: fixed; pointer-events: none; display: none; z-index: 99999;
       width: 55px; height: auto;
     }
-    body.__icat-dragging * { cursor: none !important; }
-    body.__icat-dragging { cursor: none !important; }
+    body.__icat-dragging, body.__icat-dragging * { cursor: none !important; }
   `;
   document.head.appendChild(style);
 
@@ -100,6 +99,23 @@
   let stillInAmbushSince=null, stillAnchorX=mX, stillAnchorY=mY;
   let dustActive=false, dustSeqIdx=0, dustTickIdx=0, dustMs=0;
   let shakeHistory=[], dragX=0, dragY=0, lastTick=null;
+  let hiddenSiteCursors=[];
+
+  // ── Site cursor detection ────────────────────────────────────────────────────
+  // Find and hide any existing custom cursor elements on the page (not ours)
+  function hideSiteCursors(){
+    hiddenSiteCursors=[];
+    document.querySelectorAll('[id*="cursor"],[class*="cursor"],[id*="Cursor"],[class*="Cursor"]').forEach(el=>{
+      if(el.id&&el.id.startsWith('__icat'))return; // skip our own elements
+      const prev=el.style.display;
+      el.style.setProperty('display','none','important');
+      hiddenSiteCursors.push({el,prev});
+    });
+  }
+  function restoreSiteCursors(){
+    hiddenSiteCursors.forEach(({el,prev})=>el.style.display=prev||'');
+    hiddenSiteCursors=[];
+  }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   function rnd(lo,hi){return Math.random()*(hi-lo)+lo;}
@@ -206,6 +222,7 @@
     shakeHistory=[];stillInAmbushSince=null;
     document.body.classList.remove('__icat-dragging');
     fakeCursor.style.display='none';
+    restoreSiteCursors();
     wrap.style.display=''; // show cat body again at its current catX/catY
     applyWrap();
     const now=performance.now();
@@ -226,6 +243,7 @@
     fakeCursor.style.display='block';
     wrap.style.display='none'; // hide the cat body
     document.body.classList.add('__icat-dragging');
+    hideSiteCursors();
     positionDragCursor();
     startDust(ox,oy);
     setState('dragging');
