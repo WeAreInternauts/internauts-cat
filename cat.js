@@ -39,7 +39,7 @@
     #__icat-dust img { display: block; width: 75px; height: 75px; user-select: none; }
     #__icat-cursor {
       position: fixed; pointer-events: none; display: none; z-index: 99999;
-      width: 28px; height: auto;
+      width: 55px; height: auto;
     }
     body.__icat-dragging * { cursor: none !important; }
     body.__icat-dragging { cursor: none !important; }
@@ -181,7 +181,7 @@
     } else {
       fakeCursor.src = F.MOUSE_LEFT;
       // MOUSE_LEFT arrow tip is at top-right, so offset left by width
-      fakeCursor.style.left = (dragX - 28) + 'px';
+      fakeCursor.style.left = (dragX - 55) + 'px';
       fakeCursor.style.top  = dragY + 'px';
     }
   }
@@ -221,7 +221,7 @@
     const offX=facing==='right'?-CFG.dragOffsetX:CFG.dragOffsetX;
     catX=dragX+offX;catY=dragY-CFG.dragOffsetY;
     // switch cursor to mouse pointer SVG
-    fakeCursor.style.width='28px';
+    fakeCursor.style.width='55px';
     fakeCursor.style.height='auto';
     fakeCursor.style.display='block';
     wrap.style.display='none'; // hide the cat body
