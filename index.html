@@ -18,6 +18,7 @@
       color: #222;
     }
     h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.02em; }
+    h2 { font-size: 0.9rem; font-weight: 600; color: #432261; margin-top: 8px; }
     code {
       background: #fff;
       border: 1px solid #ddd;
@@ -27,12 +28,27 @@
       color: #432261;
     }
     p { font-size: 0.85rem; color: #666; }
+    .block { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    hr { width: 100%; border: none; border-top: 1px solid #ddd; }
   </style>
 </head>
 <body>
   <h1>Internauts Cat</h1>
-  <p>Move your mouse around. Hold still near the center to trigger ambush.</p>
-  <code>&lt;script src="https://weareinternauts.github.io/internauts-cat/cat.js"&gt;&lt;/script&gt;</code>
+
+  <div class="block">
+    <h2>Desktop</h2>
+    <p>Move your mouse around. Hold still near the center to trigger ambush.</p>
+    <code>&lt;script src="https://weareinternauts.github.io/internauts-cat/cat.js"&gt;&lt;/script&gt;</code>
+  </div>
+
+  <hr />
+
+  <div class="block">
+    <h2>Mobile</h2>
+    <p>Cat lives in the nav logo. Tap anywhere to pounce and scatter text.</p>
+    <code>&lt;script src="https://weareinternauts.github.io/internauts-cat/cat-mobile.js"&gt;&lt;/script&gt;</code>
+  </div>
+
   <script src="./cat.js"></script>
 </body>
 </html>
